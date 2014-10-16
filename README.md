@@ -62,12 +62,12 @@ var Application = React.createClass({
 ```
 
 ## Browser Support
-This library supports browsers without native pushState, such as IE8 and IE9.  For these old browsers, hash will be updated with the new route path.  Here is an example:
+This library supports browsers without native pushState, such as IE8 and IE9.  For these old browsers, the library will degrade to regular http get's.  Here is an example:
 
 User clicks on a link to navigate from the current route `http://mydomain.com/home`, to a new route `http://mydomain.com/path/to/new/route`:
 
 * HTML5 browsers with pushState support will have the url updated to the new route;
-* IE8 and IE9 will have a hash fragment added to the current route: `http://mydomain.com/home#/path/to/new/route`.
+* IE8 and IE9 will make a complete HTTP GET to desired route.
 
 ## Polyfills
 `addEventListener` and `removeEventListener` polyfills are provided by:
@@ -82,4 +82,3 @@ See the [LICENSE file][] for license text and copyright information.
 [LICENSE file]: https://github.com/yahoo/flux-router-component/blob/master/LICENSE.md
 
 Third-pary open source code used are listed in our [package.json file]( https://github.com/yahoo/flux-router-component/blob/master/package.json).
-
