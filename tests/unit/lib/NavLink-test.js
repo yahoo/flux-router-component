@@ -83,6 +83,19 @@ describe('NavLink', function () {
                 done();
             }, 10);
         });
+        it ('query params are preserved in url', function (done) {
+            var navParams = {a: 1, b: true},
+                link = ReactTestUtils.renderIntoDocument(NavLink( {href:"/foo?q=r#hashfrag", context:contextMock, navParams:navParams}, React.DOM.span(null, "bar")));
+            ReactTestUtils.Simulate.click(link.getDOMNode());
+            window.setTimeout(function () {
+                expect(testResult.dispatch.action).to.equal('NAVIGATE');
+                expect(testResult.dispatch.payload.type).to.equal('click');
+                expect(testResult.dispatch.payload.path).to.equal('/foo');
+                expect(testResult.dispatch.payload.url).to.equal('/foo?q=r#hashfrag');
+                expect(testResult.dispatch.payload.params).to.eql({a: 1, b: true});
+                done();
+            }, 10);
+        });
     });
 
 });
