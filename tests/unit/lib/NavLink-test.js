@@ -67,6 +67,11 @@ describe('NavLink', function () {
                 link = ReactTestUtils.renderIntoDocument(NavLink( {name:"foo", navParams:navParams, context:contextMock}, React.DOM.span(null, "bar")));
             expect(link.props.href).to.equal('/foo/a/1/b/2');
         });
+        it ('only routeName defined', function () {
+            var navParams = {a: 1, b: 2},
+                link = ReactTestUtils.renderIntoDocument(NavLink( {routeName:"foo", navParams:navParams, context:contextMock}, React.DOM.span(null, "bar")));
+            expect(link.props.href).to.equal('/foo/a/1/b/2');
+        });
     });
 
     describe('dispatchNavAction()', function () {
