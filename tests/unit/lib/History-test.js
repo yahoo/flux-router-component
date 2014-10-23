@@ -191,6 +191,19 @@ describe('History', function () {
         });
     });
 
+    it('getRelativeUrl', function () {
+        var win = _.extend(windowMock.HTML5, {
+            location: {
+                pathname: '/path/to/page',
+                search: '?abc=1&def=2',
+                hash: '#frag1'
+            }
+        });
+        var history = new History(win);
+        var relativeUrl = history.getRelativeUrl();
+        expect(relativeUrl).to.equal('/path/to/page?abc=1&def=2#frag1');
+    });
+
     describe('pushState', function () {
         it ('has pushState', function () {
             var history = new History(windowMock.HTML5);
