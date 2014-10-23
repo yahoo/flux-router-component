@@ -58,10 +58,12 @@ describe ('RouterMixin', function () {
             var origPushState = window.history.pushState;
             window.history.pushState = null;
             window.location.hash = '#/hash';
+            window.location.search = '?a=b';
             routerMixin.componentDidMount();
             expect(testResult.dispatch.action).to.be.a('function');
             expect(testResult.dispatch.payload.type).to.equal('pageload');
             expect(testResult.dispatch.payload.path).to.equal('/hash');
+            expect(testResult.dispatch.payload.url).to.include('?a=b#/hash');
             window.history.pushState = origPushState;
         });
         it ('does not dispatch navigate event for IE8 with no hash fragment', function () {
