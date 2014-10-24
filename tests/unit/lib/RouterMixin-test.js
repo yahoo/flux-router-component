@@ -63,7 +63,7 @@ describe ('RouterMixin', function () {
             expect(testResult.dispatch.action).to.be.a('function');
             expect(testResult.dispatch.payload.type).to.equal('pageload');
             expect(testResult.dispatch.payload.path).to.equal('/hash');
-            expect(testResult.dispatch.payload.url).to.include('?a=b#/hash');
+            expect(testResult.dispatch.payload.url).to.equal('/hash?a=b');
             window.history.pushState = origPushState;
         });
         it ('does not dispatch navigate event for IE8 with no hash fragment', function () {
