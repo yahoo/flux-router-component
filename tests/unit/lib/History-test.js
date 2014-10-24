@@ -191,23 +191,67 @@ describe('History', function () {
         });
     });
 
+    describe('getRelativeUrl', function () {
+        it ('has pushState', function () {
+            var win = _.extend(windowMock.HTML5, {
+                location: {
+                    pathname: '/path/to/page',
+                    search: '?abc=1&def=2',
+                    hash: '#frag1'
+                }
+            });
+            var history = new History(win);
+            var relativeUrl = history.getRelativeUrl();
+            expect(relativeUrl).to.equal('/path/to/page?abc=1&def=2#frag1');
+        });
+        it ('no pushState', function () {
+            var win = _.extend(windowMock.OLD, {
+                location: {
+                    pathname: '/ignored_path',
+                    search: '?abc=1&def=2',
+                    hash: '#/hashpath/to/page'
+                }
+            });
+            var history = new History(win);
+            var relativeUrl = history.getRelativeUrl();
+            expect(relativeUrl).to.equal('/hashpath/to/page?abc=1&def=2');
+        });
+    });
+
     describe('pushState', function () {
         it ('has pushState', function () {
             var history = new History(windowMock.HTML5);
+
             history.pushState({foo: 'bar'}, 't', '/url');
             expect(testResult.pushState.state).to.eql({foo: 'bar'});
             expect(testResult.pushState.title).to.equal('t');
             expect(testResult.pushState.url).to.equal('/url');
+
+            history.pushState({foo: 'bar'}, 't', '/url?a=b&c=d');
+            expect(testResult.pushState.state).to.eql({foo: 'bar'});
+            expect(testResult.pushState.title).to.equal('t');
+            expect(testResult.pushState.url).to.equal('/url?a=b&c=d', 'with query');
         });
         it ('no pushState', function () {
             var win = _.extend(windowMock.OLD, {
-                location: {}
+                // location: {}
+                location: {
+                    protocol: 'http:',
+                    host: 'mydomain.com',
+                    pathname: '/path'
+                }
             });
             var history = new History(win);
+
             history.pushState({foo: 'bar'}, 't', '/url');
-            expect(win.location.hash).to.equal('#/url');
-            history.pushState({foo: 'bar'}, 't', 'http://yahoo.com/path/to/url');
-            expect(win.location.hash).to.equal('#/path/to/url');
+            expect(win.location.href).to.equal('http://mydomain.com/path#/url');
+            history.pushState({foo: 'bar'}, 't', 'http://mydomain.com/path/to/url');
+            expect(win.location.href).to.equal('http://mydomain.com/path#/path/to/url');
+
+            history.pushState({foo: 'bar'}, 't', '/url?a=b&c=d');
+            expect(win.location.href).to.equal('http://mydomain.com/path?a=b&c=d#/url', 'with query');
+            history.pushState({foo: 'bar'}, 't', 'http://mydomain.com/path/to/url?a=b&c=d');
+            expect(win.location.href).to.equal('http://mydomain.com/path?a=b&c=d#/path/to/url', 'absolute path with query');
         });
     });
 
@@ -222,16 +266,19 @@ describe('History', function () {
         it ('no pushState', function () {
             var win = _.extend(windowMock.OLD, {
                 location: {
-                    href: 'http://mydomain.com/path',
+                    protocol: 'http:',
+                    host: 'mydomain.com',
+                    pathname: '/path',
                     replace: function(url) {
                         testResult.locationReplace = {url: url};
                     }
-
                 }
             });
             var history = new History(win);
             history.replaceState({foo: 'bar'}, 't', '/url');
-            expect(testResult.locationReplace.url).to.equal('http://mydomain.com/path#/url');
+            expect(testResult.locationReplace.url).to.equal('http://mydomain.com/path#/url', 'without query');
+            history.replaceState({foo: 'bar'}, 't', '/url?a=1');
+            expect(testResult.locationReplace.url).to.equal('http://mydomain.com/path?a=1#/url', 'with query');
         });
     });
 
