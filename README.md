@@ -62,6 +62,28 @@ var Application = React.createClass({
     mixins: [RouterMixin],
     ...
 });
+
+var appComponent = Application({
+    context: this.context.getComponentContext(),
+    useHashRoute: true, // optional param, can be a boolean value,
+                        // or a synchronous function that returns boolean.
+                        // If not specified, we will automatically use hash routes
+                        // for old browsers that do not support pushState.
+    hashRouteTransformer: {  // optional transformer to customize hash route syntax
+        transform: function (original) {
+            // transform url hash fragment from '/new/path' to 'new-path'
+            var transformed = original.replace('/', '-').replace(/^(\-+)/, '');
+            return transformed;
+        },
+        reverse: function (transformed) {
+            // reverse transform from 'new-path' to '#/new/path'
+            var original = '/' + (transformed && transformed.replace('-', '/'));
+            return original;
+        }
+    }
+});
+...
+
 ```
 
 ## Browser Support
