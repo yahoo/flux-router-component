@@ -83,11 +83,42 @@ var appComponent = Application({
     }
 });
 ...
+```
+
+### Hash-based Routing
+As you see from the example in the section above, you can decide whether to turn on/off hash-based routing, or let it use the default behavior (turning on automatically for browsers without pushState support).  You can even pass a function as `props.useHashRoute`, which will be evaluated after the React component with RouterMixin is mounted.  Example:
+
+```js
+var RouterMixin = require('flux-router-component').RouterMixin;
+
+var Application = React.createClass({
+    mixins: [RouterMixin],
+    ...
+});
+
+var appComponent = Application({
+    context: this.context.getComponentContext(),
+    useHashRoute: function (aWindowObj) {
+        return true;
+    }
+});
+...
 
 ```
 
+If you are currently on this url `/home`, here is the table of all scenarios with `useHashRoute` on/off/unspecified for browsers with/without pushState support.
+
+|  | useHashRoute = true | useHashRoute = false | useHashRoute unspecified |
+|--------------------------------------|-------------------------------------------------|---------------------------------------|--------------------------------|
+| Browsers *with* pushState support | history.pushState with /home#/path/to/pageB | history.pushState with /path/to/pageB | Same as `useHashRoute = false` |
+| Browsers *without* pushState support | page refresh to /home#/path/to/pageB | page refresh to /path/to/pageB | Same as `useHashRoute = true` |
+
+### Custom Transformer for Hash Fragment
+By default, the hash fragments are just url paths.  But you can transform it to the syntax you want by passing `props.hashRouteTransformer` to the base React component that `RouterMixin` is mixed into.  See the example in [Example Usage](#example-usage) section.
+
+
 ## Browser Support
-This library supports browsers without native pushState, such as IE8 and IE9.  For these old browsers, hash will be updated with the new route path.  Here is an example:
+This library supports browsers without native pushState, such as IE8 and IE9.  For these old browsers, hash will be updated with the new route path, if `useHashRoute` is not set to `false`.  Here is an example:
 
 User clicks on a link to navigate from the current route `http://mydomain.com/home`, to a new route `http://mydomain.com/path/to/new/route`:
 
