@@ -27,8 +27,7 @@ pushStateMock = function (state, title, url) {
     };
 };
 
-describe ('RouterMixin', function () {
-
+describe ('RouterMixin useHashRoute=false', function () {
     beforeEach(function () {
         routerMixin = require('../../../lib/RouterMixin');
         routerMixin.props = {context: contextMock};
@@ -54,25 +53,7 @@ describe ('RouterMixin', function () {
             expect(testResult.dispatch.payload.path).to.equal(window.location.pathname);
             expect(testResult.dispatch.payload.params).to.eql({a: 1});
         });
-        it ('dispatch navigate event for IE8 with hash fragment', function () {
-            var origPushState = window.history.pushState;
-            window.history.pushState = null;
-            window.location.hash = '#/hash';
-            routerMixin.componentDidMount();
-            expect(testResult.dispatch.action).to.be.a('function');
-            expect(testResult.dispatch.payload.type).to.equal('pageload');
-            expect(testResult.dispatch.payload.path).to.equal('/hash');
-            window.history.pushState = origPushState;
-        });
-        it ('does not dispatch navigate event for IE8 with no hash fragment', function () {
-            var origPushState = window.history.pushState;
-            window.history.pushState = null;
-            window.location.hash = '#';
-            routerMixin.componentDidMount();
-            expect(testResult.dispatch).to.equal(undefined);
-            window.history.pushState = origPushState;
-        });
-        it ('does not dispatch navigate event for browsers with pushState', function () {
+        it ('does not dispatch navigate event', function () {
             window.location.hash = '#/hash';
             routerMixin.componentDidMount();
             expect(testResult.dispatch).to.equal(undefined);
@@ -147,5 +128,45 @@ describe ('RouterMixin', function () {
             window.history.pushState = origPushState;
         });
     });
+});
 
+describe ('RouterMixin useHashRoute=true', function () {
+    beforeEach(function () {
+        routerMixin = require('../../../lib/RouterMixin');
+        routerMixin.props = {
+            context: contextMock,
+            useHashRoute: true
+        };
+        global.window = jsdom.jsdom().createWindow('<html><body></body></html>');
+        global.document = global.window.document;
+        global.navigator = global.window.navigator;
+        testResult = {};
+    });
+
+    afterEach(function () {
+        delete global.window;
+        delete global.document;
+        delete global.navigator;
+    });
+
+    describe('componentDidMount()', function () {
+        it ('dispatch navigate event with hash fragment', function (done) {
+            window.location.hash = '#/hash';
+            routerMixin.componentDidMount();
+            setImmediate(function () {
+                expect(testResult.dispatch.action).to.be.a('function');
+                expect(testResult.dispatch.payload.type).to.equal('pageload');
+                expect(testResult.dispatch.payload.path).to.equal('/hash');
+                done();
+            });
+        });
+        it ('does not dispatch navigate event with no hash fragment', function (done) {
+            window.location.hash = '#';
+            routerMixin.componentDidMount();
+            setImmediate(function () {
+                expect(testResult.dispatch).to.equal(undefined);
+                done();
+            });
+        });
+    });
 });
