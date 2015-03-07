@@ -3,7 +3,7 @@
  * Copyrights licensed under the New BSD License. See the accompanying LICENSE file for terms.
  */
 /*globals describe,it,before,beforeEach */
-var HistoryWithHash = require('../../../utils/HistoryWithHash'),
+var HistoryWithHash = require('../../../addons/HistoryWithHash'),
     expect = require('chai').expect,
     _ = require('lodash'),
     windowMock,

@@ -1,9 +1,12 @@
+/**
+ * Copyright 2014-2015, Yahoo! Inc.
+ * Copyrights licensed under the New BSD License. See the accompanying LICENSE file for terms.
+ */
+'use strict';
 var React = require('react/addons');
-var RouterMixin = require('../../').RouterMixin;
+var RouterComponent = require('../../').RouterComponent;
 
 var MockAppComponent = React.createClass({
-
-    mixins: [RouterMixin],
 
     childContextTypes: {
         executeAction: React.PropTypes.func,
@@ -17,7 +20,12 @@ var MockAppComponent = React.createClass({
     },
 
     render: function () {
-        return React.addons.cloneWithProps(this.props.children, {});
+        return React.createElement(RouterComponent, {
+            checkRouteOnPageLoad: this.props.checkRouteOnPageLoad,
+            enableScroll: this.props.enableScroll,
+            historyCreator: this.props.historyCreator,
+            ref: 'router'
+        }, this.props.children);
     }
 });
 

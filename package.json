@@ -1,11 +1,11 @@
 {
-  "name": "flux-router-component",
-  "version": "0.6.1",
-  "description": "Router-related React component and mixin for applications with Fluxible architecture",
+  "name": "fluxible-router",
+  "version": "0.1.0",
+  "description": "Routing for Fluxible applications",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/yahoo/flux-router-component.git"
+    "url": "git://github.com/yahoo/fluxible-router.git"
   },
   "scripts": {
     "cover": "node node_modules/istanbul/lib/cli.js cover --dir artifacts -- ./node_modules/mocha/bin/_mocha tests/unit/ --recursive --reporter spec",
@@ -16,14 +16,16 @@
   "licenses": [
     {
       "type": "BSD",
-      "url": "https://github.com/yahoo/flux-router-component/blob/master/LICENSE.md"
+      "url": "https://github.com/yahoo/fluxible-router/blob/master/LICENSE.md"
     }
   ],
   "dependencies": {
     "debug": "^2.0.0",
+    "fluxible": "^0.3.1",
+    "immutable": "^3.6.2",
     "object-assign": "^2.0.0",
     "query-string": "^1.0.0",
-    "setimmediate": "^1.0.2"
+    "routr": "^0.1.0"
   },
   "peerDependencies": {
     "react": "0.13.x"
@@ -36,6 +38,7 @@
     "jshint": "^2.5.1",
     "lodash": "^3.2.0",
     "mocha": "^2.0.1",
+    "mockery": "^1.4.0",
     "precommit-hook": "^1.0.2",
     "react": "0.13.x",
     "react-tools": "0.13.x"
@@ -45,6 +48,7 @@
   },
   "keywords": [
     "flux",
+    "fluxible",
     "history",
     "navigation",
     "react",

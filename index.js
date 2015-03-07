@@ -5,8 +5,9 @@
 'use strict';
 
 module.exports = {
+    History: require('./lib/History'),
+    navigateAction: require('./lib/navigateAction'),
     NavLink: require('./lib/NavLink'),
-    RouterMixin: require('./lib/RouterMixin'),
-    navigateAction: require('./actions/navigate'),
-    History: require('./lib/History')
+    RouterComponent: require('./lib/RouterComponent'),
+    RouteStore: require('./lib/RouteStore')
 };
