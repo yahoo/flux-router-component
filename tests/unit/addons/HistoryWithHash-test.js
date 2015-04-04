@@ -120,7 +120,7 @@ describe('HistoryWithHash', function () {
                 }
             });
             history = new HistoryWithHash({win: win});
-            url = history.getUrl();
+            var url = history.getUrl();
             expect(url).to.equal('/path/to/abc');
 
             win = _.extend({}, windowMock.OLD, {

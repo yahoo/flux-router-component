@@ -5,9 +5,8 @@
 /*globals describe,it,before,beforeEach */
 var expect = require('chai').expect;
 var navigateAction = require('../../../lib/navigateAction');
-var createMockActionContext = require('fluxible/utils/MockActionContext');
-var MockActionContext = createMockActionContext();
-var RouteStore = require('../../../lib/RouteStore');
+var createMockActionContext = require('fluxible/utils/createMockActionContext');
+var RouteStore = require('../../../').RouteStore;
 
 describe('navigateAction', function () {
     var mockContext;
@@ -48,9 +47,10 @@ describe('navigateAction', function () {
     };
 
     beforeEach(function () {
-        mockContext = new MockActionContext();
-        mockContext.Dispatcher.registerStore(RouteStore);
-        mockContext.dispatcher.dispatch('RECEIVE_ROUTES', routes);
+        mockContext = createMockActionContext({
+            stores: [RouteStore]
+        });
+        mockContext.dispatcherContext.dispatch('RECEIVE_ROUTES', routes);
         mockContext.getAction = function (actionName, foo) {
             if ('foo' === actionName) {
                 return fooAction;
@@ -180,10 +180,10 @@ describe('navigateAction', function () {
         function BadRouteStore(){}
         BadRouteStore.storeName = 'RouteStore';
 
-        var NewMockActionContext = createMockActionContext();
-        NewMockActionContext.registerStore(BadRouteStore);
-        var newMockContext = new NewMockActionContext();
-        newMockContext.dispatcher.dispatch('RECEIVE_ROUTES', routes);
+        var newMockContext = createMockActionContext({
+            stores: [BadRouteStore]
+        });
+        newMockContext.dispatcherContext.dispatch('RECEIVE_ROUTES', routes);
         navigateAction(newMockContext, {
             url: '/action',
             method: 'get'

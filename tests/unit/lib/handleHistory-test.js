@@ -9,16 +9,15 @@ var jsdom = require('jsdom');
 var React;
 var MockAppComponent;
 var RouteStore = require('../../../lib/RouteStore');
-var mockAppComponentFactory;
-var MockContext = require('fluxible/utils/MockComponentContext')();
+var createMockComponentContext = require('fluxible/utils/createMockComponentContext');
 var ReactTestUtils;
 
-MockContext.registerStore(RouteStore.withStaticRoutes({
+var TestRouteStore = RouteStore.withStaticRoutes({
     foo: { path: '/foo', method: 'get' },
     fooA: { path: '/foo/:a', method: 'get' },
     fooAB: { path: '/foo/:a/:b', method: 'get' },
     pathFromHistory: { path: '/the_path_from_history', method: 'get' }
-}));
+});
 
 var testResult = {};
 var historyMock = function (url, state) {
@@ -56,8 +55,10 @@ var scrollToMock = function (x, y) {
     testResult.scrollTo = {x: x, y: y};
 };
 
-describe ('RouterComponent', function () {
+describe ('handleHistory', function () {
     var mockContext;
+    var provideContext;
+    var createRoutingContainer;
 
     beforeEach(function () {
         mockery.enable({
@@ -70,10 +71,13 @@ describe ('RouterComponent', function () {
         global.navigator = global.window.navigator;
         global.window.scrollTo = scrollToMock;
         React = require('react');
-        MockAppComponent = require('../../mocks/MockAppComponent');
-        mockAppComponentFactory = React.createFactory(MockAppComponent);
+        provideContext = require('fluxible/addons/provideContext');
+        createRoutingContainer = require('../../../').handleHistory;
+        MockAppComponent = require('../../mocks/MockAppComponent').UnwrappedMockAppComponent;
         ReactTestUtils = React.addons.TestUtils;
-        mockContext = new MockContext();
+        mockContext = createMockComponentContext({
+            stores: [TestRouteStore]
+        });
         testResult = {};
     });
 
@@ -89,7 +93,7 @@ describe ('RouterComponent', function () {
             var rendered = false;
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
-            var Child = React.createFactory(React.createClass({
+            var Child = React.createClass({
                 displayName: 'Child',
                 render: function () {
                     rendered = true;
@@ -97,11 +101,12 @@ describe ('RouterComponent', function () {
                     expect(this.props.currentRoute.get('url')).to.equal('/foo');
                     return null;
                 }
-            }));
+            });
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext
-                }, Child())
+                <MockAppComponent context={mockContext}>
+                    <Child />
+                </MockAppComponent>
             );
             expect(rendered).to.equal(true);
         });
@@ -109,10 +114,9 @@ describe ('RouterComponent', function () {
 
     describe('componentDidMount()', function () {
         it ('listen to popstate event', function () {
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext
-                })
+                <MockAppComponent context={mockContext} />
             );
             window.dispatchEvent({_type: 'popstate', state: {params: {a: 1}}});
             expect(mockContext.executeActionCalls.length).to.equal(1);
@@ -124,13 +128,13 @@ describe ('RouterComponent', function () {
         it ('listen to scroll event', function (done) {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/the_path_from_state', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock();
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock();
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             window.dispatchEvent({_type: 'scroll'});
             window.dispatchEvent({_type: 'scroll'});
@@ -142,14 +146,14 @@ describe ('RouterComponent', function () {
         it ('dispatch navigate event for pages that url does not match', function (done) {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/the_path_from_state', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                checkRouteOnPageLoad: true,
+                historyCreator: function () {
+                    return historyMock();
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    checkRouteOnPageLoad: true,
-                    historyCreator: function() {
-                        return historyMock();
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             window.setTimeout(function() {
                 expect(mockContext.executeActionCalls.length).to.equal(1);
@@ -162,13 +166,13 @@ describe ('RouterComponent', function () {
         it ('does not dispatch navigate event for pages with matching url', function (done) {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/the_path_from_history', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock('/foo');
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock();
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             window.setTimeout(function() {
                 expect(testResult.dispatch).to.equal(undefined, JSON.stringify(testResult.dispatch));
@@ -179,15 +183,16 @@ describe ('RouterComponent', function () {
 
     describe('componentWillUnmount()', function () {
         it ('stop listening to popstate event', function () {
-            var component = ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock('/foo');
-                    }
-                })
-            );
-            component.refs.router.componentWillUnmount();
+            var div = document.createElement('div');
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock('/foo');
+                }
+            }));
+            React.render(
+                <MockAppComponent context={mockContext} />
+            , div);
+            React.unmountComponentAtNode(div);
             expect(testResult.historyMockOn).to.equal(null);
             window.dispatchEvent({_type: 'popstate', state: {params: {a: 1}}});
             expect(testResult.dispatch).to.equal(undefined);
@@ -198,13 +203,13 @@ describe ('RouterComponent', function () {
         it ('no-op on same route', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock('/foo');
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock('/foo');
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
             expect(testResult.pushState).to.equal(undefined);
@@ -212,13 +217,13 @@ describe ('RouterComponent', function () {
         it ('do not pushState, navigate.type=popstate', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock('/foo');
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock('/foo');
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/bar', type: 'popstate', method: 'GET'});
             expect(testResult.pushState).to.equal(undefined);
@@ -226,13 +231,13 @@ describe ('RouterComponent', function () {
         it ('update with different route, navigate.type=click, reset scroll position', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock('/foo');
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock('/foo');
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/bar', method: 'GET'});
             expect(testResult.pushState).to.eql({state: {params: {}, scroll: {x: 0, y: 0}}, title: null, url: '/bar'});
@@ -241,14 +246,14 @@ describe ('RouterComponent', function () {
         it ('update with different route, navigate.type=click, enableScroll=false, do not reset scroll position', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                enableScroll: false,
+                historyCreator: function () {
+                    return historyMock('/foo');
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    enableScroll: false,
-                    historyCreator: function() {
-                        return historyMock('/foo');
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/bar', method: 'GET'});
             expect(testResult.pushState).to.eql({state: {params: {}}, title: null, url: '/bar'});
@@ -257,13 +262,13 @@ describe ('RouterComponent', function () {
         it ('update with different route, navigate.type=default, reset scroll position', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock('/foo');
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock('/foo');
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/bar', method: 'GET'});
             expect(testResult.pushState).to.eql({state: {params: {}, scroll: {x: 0, y: 0} }, title: null, url: '/bar'});
@@ -272,14 +277,14 @@ describe ('RouterComponent', function () {
         it ('update with different route, navigate.type=default, enableScroll=false, do not reset scroll position', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                enableScroll: false,
+                historyCreator: function () {
+                    return historyMock('/foo', {scroll: {x: 12, y: 200}});
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    enableScroll: false,
-                    historyCreator: function() {
-                        return historyMock('/foo', {scroll: {x: 12, y: 200}});
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/bar', method: 'GET'});
             expect(testResult.pushState).to.eql({state: {params: {}}, title: null, url: '/bar'});
@@ -288,13 +293,13 @@ describe ('RouterComponent', function () {
         it ('do not pushState, navigate.type=popstate, restore scroll position', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock('/foo#hash1', {scroll: {x: 12, y: 200}});
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock('/foo', {scroll: {x: 12, y: 200}});
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/bar', method: 'GET', type: 'popstate'});
             expect(testResult.pushState).to.equal(undefined);
@@ -303,14 +308,14 @@ describe ('RouterComponent', function () {
         it ('do not pushState, navigate.type=popstate, enableScroll=false, restore scroll position', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                enableScroll: false,
+                historyCreator: function () {
+                    return historyMock('/foo#hash1', {scroll: {x: 12, y: 200}});
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    enableScroll: false,
-                    historyCreator: function() {
-                        return historyMock('/foo', {scroll: {x: 12, y: 200}});
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/bar', method: 'GET', type: 'popstate'});
             expect(testResult.pushState).to.equal(undefined);
@@ -320,13 +325,13 @@ describe ('RouterComponent', function () {
         it ('update with different route, navigate.type=click, with params', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock('/foo#hash1');
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock('/foo#hash1');
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/bar', type: 'click', params: {foo: 'bar'}});
             expect(testResult.pushState).to.eql({state: {params: {foo: 'bar'}, scroll: {x: 0, y:0}}, title: null, url: '/bar'});
@@ -334,13 +339,13 @@ describe ('RouterComponent', function () {
         it ('update with same path and different hash, navigate.type=click, with params', function () {
             var routeStore = mockContext.getStore('RouteStore');
             routeStore.handleNavigateStart({url: '/foo#hash1', method: 'GET'});
+            MockAppComponent = provideContext(createRoutingContainer(MockAppComponent, {
+                historyCreator: function () {
+                    return historyMock('/foo#hash1');
+                }
+            }));
             ReactTestUtils.renderIntoDocument(
-                mockAppComponentFactory({
-                    context: mockContext,
-                    historyCreator: function() {
-                        return historyMock('/foo#hash1');
-                    }
-                })
+                <MockAppComponent context={mockContext} />
             );
             routeStore.handleNavigateStart({url: '/foo#hash2', type: 'click', params: {foo: 'bar'}});
             expect(testResult.pushState).to.eql({state: {params: {foo: 'bar'}, scroll: {x: 0, y:0}}, title: null, url: '/foo#hash2'});

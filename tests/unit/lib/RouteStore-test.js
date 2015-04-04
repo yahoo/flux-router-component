@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var RouteStore = require('../../../lib/RouteStore');
+var RouteStore = require('../../../').RouteStore;
 var StaticRouteStore = RouteStore.withStaticRoutes({
     foo: {
         path: '/foo',

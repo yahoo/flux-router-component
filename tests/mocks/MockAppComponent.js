@@ -4,29 +4,25 @@
  */
 'use strict';
 var React = require('react/addons');
-var RouterComponent = require('../../').RouterComponent;
+var provideContext = require('fluxible/addons/provideContext');
+var handleHistory = require('../../lib/handleHistory');
 
 var MockAppComponent = React.createClass({
-
-    childContextTypes: {
-        executeAction: React.PropTypes.func,
-        getStore: React.PropTypes.func
+    contextTypes: {
+        getStore: React.PropTypes.func.isRequired
     },
-    getChildContext: function () {
-        return {
-            executeAction: this.props.context.executeAction,
-            getStore: this.props.context.getStore
-        };
-    },
-
     render: function () {
-        return React.createElement(RouterComponent, {
-            checkRouteOnPageLoad: this.props.checkRouteOnPageLoad,
-            enableScroll: this.props.enableScroll,
-            historyCreator: this.props.historyCreator,
-            ref: 'router'
-        }, this.props.children);
+        if (!this.props.children) {
+            return null;
+        }
+        return React.addons.cloneWithProps(this.props.children, {
+            currentRoute: this.props.currentRoute
+        });
     }
 });
 
-module.exports = MockAppComponent;
+module.exports = provideContext(handleHistory(MockAppComponent, {
+    checkRouteOnPageLoad: false,
+    enableScroll: true
+}));
+module.exports.UnwrappedMockAppComponent = MockAppComponent;

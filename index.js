@@ -5,9 +5,10 @@
 'use strict';
 
 module.exports = {
+    handleHistory: require('./lib/handleHistory'),
+    handleRoute: require('./lib/handleRoute'),
     History: require('./lib/History'),
     navigateAction: require('./lib/navigateAction'),
     NavLink: require('./lib/NavLink'),
-    RouterComponent: require('./lib/RouterComponent'),
     RouteStore: require('./lib/RouteStore')
 };
