@@ -1,6 +1,8 @@
 # NavLink
-`NavLink` is the a React component for navigational links.  When the link is clicked, NavLink will execute a [navigateAction]('./navigateAction.md').  Stores can register for `CHANGE_ROUTE_SUCCESS` handlers if they are interested
+`NavLink` is the a React component for navigational links.  When the link is clicked, NavLink will execute a [navigateAction](./navigateAction.md).  Stores can register for `CHANGE_ROUTE_SUCCESS` handlers if they are interested
 in navigation events.
+
+## Component Props
 
 | Prop Name | Prop Type | Description |
 |------------|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -23,16 +25,13 @@ Here are two examples of generating `NavLink` using `href` property, and using `
 If the url is static, or you can generate the url outside of `Navlink`, you can simply pass the url to `NavLink` as a prop.  Here is an example:
 
 ```js
-var NavLink = require('flux-router-component').NavLink;
+var NavLink = require('fluxible-router').NavLink;
 
 var Nav = React.createClass({
     render: function () {
         // This example is using this.props.context for Nav and NavLink components.
         // You can also use the React context, as described in the Context section of this doc.
-        var pages,
-            links,
-            context = this.props.context;
-        pages = [
+        var pages = [
             {
                 name: 'home',
                 url: '/home',
@@ -44,7 +43,7 @@ var Nav = React.createClass({
                 text: 'About Us'
             }
         ];
-        links = pages.map(function (page) {
+        var links = pages.map(function (page) {
             return (
                 <li className="navItem">
                     <NavLink href={page.url} context={context}>
@@ -53,12 +52,13 @@ var Nav = React.createClass({
                 </li>
             );
         });
+        var context = this.props.context;
+
         return (
             <ul className="nav">
                 {links}
             </ul>
         );
-
     }
 });
 ```
@@ -84,6 +84,7 @@ Here is a quick example code showcasing how to use `routeName` prop along with `
 //         page: 'article'
 //     }
 // };
+
 var pages = [
     {
         routeName: 'home',
@@ -97,12 +98,12 @@ var pages = [
         text: 'Article A'
     }
 ];
+
 var Nav = React.createClass({
     render: function () {
         // context should provide executeAction() and makePath().
         // This example is using this.props.context for Nav and NavLink components.
         // You can also use the React context, as described in the Context section of this doc.
-        var context = this.props.context;
         var links = pages.map(function (page) {
             return (
                 <li className="navItem">
@@ -112,6 +113,8 @@ var Nav = React.createClass({
                 </li>
             );
         });
+        var context = this.props.context;
+
         return (
             <ul className="nav">
                 {links}
