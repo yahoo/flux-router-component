@@ -1,4 +1,5 @@
 # NavLink
+
 `NavLink` is the a React component for navigational links.  When the link is clicked, NavLink will execute a [navigateAction](./navigateAction.md).  Stores can register for `CHANGE_ROUTE_SUCCESS` handlers if they are interested
 in navigation events.
 
