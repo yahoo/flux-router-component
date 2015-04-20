@@ -52,7 +52,6 @@ var Nav = React.createClass({
                 </li>
             );
         });
-        var context = this.props.context;
 
         return (
             <ul className="nav">
@@ -113,7 +112,6 @@ var Nav = React.createClass({
                 </li>
             );
         });
-        var context = this.props.context;
 
         return (
             <ul className="nav">
