@@ -6,7 +6,7 @@ in navigation events.
 ## Component Props
 
 | Prop Name | Prop Type | Description |
-|------------|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|-----------|-----------|-------------|
 | href | String | The url string |
 | routeName | String | Not used if `href` is specified. This is the name of the target route, which should be defined in your app's routes. |
 | navParams | Object | If `href` prop is not available, `navParams` object will be used together with `routeName` to generate the href for the link.  This object needs to contain route params the route path needs.  Eg. for a route path `/article/:id`, `navParams.id` will be the article ID. |

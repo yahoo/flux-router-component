@@ -15,7 +15,7 @@ You can decide when to use hash-based routing through the `useHashRoute` option:
 * `useHashRoute=false` to turn off hash routing for all browsers.
 
 |  | useHashRoute = true | useHashRoute = false | useHashRoute unspecified |
-|--------------------------------------|-------------------------------------------------|---------------------------------------|--------------------------------|
+|--|---------------------|----------------------|--------------------------|
 | Browsers *with* pushState support | history.pushState with /home#/path/to/pageB | history.pushState with /path/to/pageB | Same as `useHashRoute = false` |
 | Browsers *without* pushState support | page refresh to /home#/path/to/pageB | page refresh to /path/to/pageB | Same as `useHashRoute = true` |
 
