@@ -6,6 +6,7 @@ The library has a built-in [`RouteStore`](../api/RouteStore.md) that needs to be
 
 ```js
 // app.js
+
 var Fluxible = require('fluxible');
 var RouteStore = require('fluxible-router').RouteStore;
 var routes = require('./configs/routes');
